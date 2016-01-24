@@ -33,20 +33,84 @@ let server = app.listen(port, () => {
 
 let io = require('socket.io')(server);
 
-let currentViews = [
-  { type: 'skeleton',
-    x: 0, y: 0}
+
+let possibleViews = [
+  {
+    type: "skull",
+    rotate: 0,
+    zoom: 1,
+    x: 0,
+    y: 0,
+    z: 0,
+    rotate_rate: 0
+  },
+  {
+    type: "glucose",
+    rotate: 0,
+    zoom: 1,
+    x: 0,
+    y: 0,
+    z: 0,
+    rotate_rate: 0
+  },
+  {
+    type: "graph",
+    rotate: 0,
+    zoom: 1,
+    x: 0,
+    y: 0,
+    z: 0,
+    rotate_rate: 0,
+    equation: '[Y]=[X]'
+  },
+  {
+    type: "physics",
+    rotate: 0,
+    zoom: 1,
+    x: 0,
+    y: 0,
+    z: 0,
+    rotate_rate: 0
+  },
+  {
+    type: "physics2",
+    rotate: 0,
+    zoom: 1,
+    x: 0,
+    y: 0,
+    z: 0,
+    rotate_rate: 0
+  }
 ];
+
+let currentViews = [possibleViews[0]];
+
+/*
+function setRotation(intent) {
+  switch (intent) {
+
+  }
+}
+*/
 
 io.on('connection', (socket) => {
   for(var i = 0; i < currentViews.length; i++) {
     socket.emit('ADD_VIEW', currentViews[i]);
+
   }
 
   socket.on('SEL', (data) => {
     io.emit('REMOVE_VIEW', currentViews[0]);
     currentViews.shift();
-    currentViews.push({type: data.view, x: 0, y: 0});
-    io.emit('ADD_VIEW', currentViews[currentViews.length - 1]); // broadcast the message everywhere
+    let newView = possibleViews[data.choice];
+    if(newView.type === 'graph') {
+      newView.equation = data.eq;
+    }
+
+    currentViews.push(newView);
+    io.emit('ADD_VIEW', currentViews[currentViews.length - 1]);
   });
+  socket.on('UPD', (data) => {
+    io.emit('ADD_VIEW', {type: data.choice, rotate: data.rotate, zoom: data.zoom, x: data.x, y: data.y, z: data.z, equation: data.equation, rotate_rate: 0 })
+  })
 });
